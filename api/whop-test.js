@@ -13,16 +13,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch("https://api.whop.com/api/v1/me", {
+    // Company API keys are company-scoped. /me is not a valid Whop REST endpoint.
+    // Listing products is a safe read-only connectivity test.
+    const response = await fetch("https://api.whop.com/api/v1/products", {
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Api-Version-Date": "2026-06-09"
       }
     });
 
     const text = await response.text();
     let data;
-    try { data = JSON.parse(text); } catch { data = { raw: text.slice(0, 500) }; }
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { raw: text.slice(0, 500) };
+    }
 
     if (!response.ok) {
       return res.status(response.status).json({
@@ -35,6 +42,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       connected: true,
+      test: "products",
       whop: data
     });
   } catch (error) {
