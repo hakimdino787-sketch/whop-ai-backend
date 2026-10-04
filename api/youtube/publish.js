@@ -4,7 +4,7 @@ async function token(req,res,t){
   if(!t) return null;
   if(t.expiry_date && Date.now() < Number(t.expiry_date)-120000) return t;
   if(!t.refresh_token) return t;
-  const body=new URLSearchParams({client_id:process.env.YOUTUBE_CLIENT_ID,client_secret:process.env.YOUTUBE_CLIENT_SECRET,refresh_token:t.refresh_token,grant_type:"refresh_token"});
+  const body=new URLSearchParams({client_id:process.env.YOUTUBE_CLIENT_ID||process.env.GOOGLE_CLIENT_ID,client_secret:process.env.YOUTUBE_CLIENT_SECRET||process.env.GOOGLE_CLIENT_SECRET,refresh_token:t.refresh_token,grant_type:"refresh_token"});
   const r=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body});
   const d=await r.json();
   if(!r.ok) throw new Error(d.error_description||"YouTube refresh failed");
