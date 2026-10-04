@@ -45,7 +45,7 @@ async function publish(req,res){
 }
 
 export default async function handler(req,res){
-  const route=Array.isArray(req.query?.route)?req.query.route[0]:req.query?.route;
+  const path=(req.url||"").split("?")[0]; const route=(Array.isArray(req.query?.route)?req.query.route[0]:req.query?.route)||path.split("/").filter(Boolean).pop();
   if(route==="connect"){
     if(req.method!=="GET") return res.status(405).json({ok:false,error:"Method not allowed"});
     const clientId=process.env.YOUTUBE_CLIENT_ID||process.env.GOOGLE_CLIENT_ID;
