@@ -32,7 +32,7 @@ async function publish(req,res){
   return res.status(200).json({ok:true,provider:"tiktok",publish_id:d.data?.publish_id||null,note:"TikTok will pull the video from the verified HTTPS URL. Unaudited apps may be restricted to private posts."});
 }
 export default async function handler(req,res){
-  const route=Array.isArray(req.query?.route)?req.query.route[0]:req.query?.route;
+  const path=(req.url||"").split("?")[0]; const route=(Array.isArray(req.query?.route)?req.query.route[0]:req.query?.route)||path.split("/").filter(Boolean).pop();
   if(route==="callback"){if(req.method!=="GET") return res.status(405).json({ok:false,error:"Method not allowed"});return callback(req,res);}
   if(route==="publish"){if(req.method!=="POST") return res.status(405).json({ok:false,error:"Method not allowed"});return publish(req,res);}
   return res.status(404).json({ok:false,error:"Unknown TikTok route"});
