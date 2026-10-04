@@ -15,8 +15,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Whop currently expects account_id for this request.
     const response = await fetch(
-      `https://api.whop.com/api/v1/plans?company_id=${encodeURIComponent(companyId)}&first=100`,
+      `https://api.whop.com/api/v1/plans?account_id=${encodeURIComponent(companyId)}&first=100`,
       {
         headers: {
           Authorization: `Bearer ${apiKey}`,
