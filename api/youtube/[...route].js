@@ -3,13 +3,11 @@ import { makeState, setCookie, STATE_COOKIE, verifyState, getCookie, saveTokens,
 async function callback(req,res){
   const {code,state,error,error_description}=req.query||{};
   if(error) return res.status(400).json({ok:false,error,error_description});
-  if(!code||!state||!verifyState(state,"youtube")||getCookie(req,STATE_COOKIE)!==state)
-    return res.status(400).json({ok:false,error:"Invalid OAuth state"});
+  if(!code||!state||!verifyState(state,"youtube")||getCookie(req,STATE_COOKIE)!==state) return res.status(400).json({ok:false,error:"Invalid OAuth state"});
   const clientId=process.env.YOUTUBE_CLIENT_ID||process.env.GOOGLE_CLIENT_ID;
-  const clientSecret=process.env.YOUTUBE_CLIENT_SECRET||process.env.GOOGLE_CLIENT_SECRET;
+  const clientSecret=process.env.YOUTUBE_CLIENT_SECRET||process.env.GOOGLE_CLIENT_SECRETd||process.env.GOOGLE_CLIENT_SECRET;
   const redirectUri=process.env.YOUTUBE_REDIRECT_URI;
-  if(!clientId||!clientSecret||!redirectUri||!process.env.SOCIAL_SESSION_SECRET)
-    return res.status(500).json({ok:false,error:"YouTube OAuth environment variables are missing"});
+  if(!clientId||!clientSecret||!redirectUri||!process.env.SOCIAL_SESSION_SECRET) return res.status(500).json({ok:false,error:"YouTube OAuth environment variables are missing"});
   const body=new URLSearchParams({code:String(code),client_id:clientId,client_secret:clientSecret,redirect_uri:redirectUri,grant_type:"authorization_code"});
   const r=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body});
   const data=await r.json();
@@ -22,7 +20,7 @@ async function publish(req,res){
   let t=loadTokens(req,"youtube");
   if(!t) return res.status(401).json({ok:false,error:"YouTube is not connected. Open /api/youtube/connect first."});
   if(t.expiry_date && Date.now() >= Number(t.expiry_date)-120000 && t.refresh_token){
-    const body=new URLSearchParams({client_id:process.env.YOUTUBE_CLIENT_ID||process.env.GOOGLE_CLIENT_ID,client_secret:process.env.YOUTUBE_CLIENT_SECRET||process.env.GOOGLE_CLIENT_SECRET,refresh_token:t.refresh_token,grant_type:"refresh_token"});
+    const body=new URLSearchParams({client_id:process.env.YOUTUBE_CLIENT_ID||process.env.GOOGLE_CLIENT_ID,client_secret:process.env.YOUTUBE_CLIENT_SECRET||process.env.GOOGLE_CLIENT_SECRETd||process.env.GOOGLE_CLIENT_SECRET,refresh_token:t.refresh_token,grant_type:"refresh_token"});
     const r=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body});
     const d=await r.json();
     if(!r.ok) return res.status(502).json({ok:false,error:d.error_description||"YouTube refresh failed"});
@@ -57,7 +55,7 @@ export default async function handler(req,res){
     url.searchParams.set("access_type","offline"); url.searchParams.set("prompt","consent"); url.searchParams.set("scope","https://www.googleapis.com/auth/youtube.upload"); url.searchParams.set("state",state); url.searchParams.set("response_mode","query");
     return res.redirect(302,url.toString());
   }
-  if(route==="callback"){ if(req.method!=="GET") return res.status(405).json({ok:false,error:"Method not allowed"}); return callback(req,res); }
-  if(route==="publish"){ if(req.method!=="POST") return res.status(405).json({ok:false,error:"Method not allowed"}); return publish(req,res); }
+  if(route==="callback"){if(req.method!=="GET") return res.status(405).json({ok:false,error:"Method not allowed"}); return callback(req,res);}
+  if(route==="publish"){if(req.method!=="POST") return res.status(405).json({ok:false,error:"Method not allowed"}); return publish(req,res);}
   return res.status(404).json({ok:false,error:"Unknown YouTube route"});
 }
