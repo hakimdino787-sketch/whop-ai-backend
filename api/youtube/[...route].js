@@ -42,7 +42,7 @@ async function publish(req,res){
   return res.status(200).json({ok:true,provider:"youtube",video:d});
 }
 
-export default async function handler(req,res){
+export default async function handler(req,res){ // OAuth routes for Whop + YouTube backend
   const path=(req.url||"").split("?")[0]; const route=(Array.isArray(req.query?.route)?req.query.route[0]:req.query?.route)||path.split("/").filter(Boolean).pop();
   if(route==="connect"){
     if(req.method!=="GET") return res.status(405).json({ok:false,error:"Method not allowed"});
@@ -50,8 +50,7 @@ export default async function handler(req,res){
     const redirectUri=process.env.YOUTUBE_REDIRECT_URI;
     if(!clientId||!redirectUri||!process.env.SOCIAL_SESSION_SECRET) return res.status(500).json({ok:false,error:"YouTube OAuth environment variables are missing"});
     const state=makeState("youtube"); setCookie(res,STATE_COOKIE,state,600);
-    const url=new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    url.searchParams.set("client_id",clientId); url.searchParams.set("redirect_uri",redirectUri); url.searchParams.set("response_type","code");
+    const url=new URL("https://accounts.google.com/o/oauth2/v2/auth"); url.searchParams.set("client_id",clientId); url.searchParams.set("redirect_uri",redirectUri); url.searchParams.set("response_type","code");
     url.searchParams.set("access_type","offline"); url.searchParams.set("prompt","consent"); url.searchParams.set("scope","https://www.googleapis.com/auth/youtube.upload"); url.searchParams.set("state",state); url.searchParams.set("response_mode","query");
     return res.redirect(302,url.toString());
   }
