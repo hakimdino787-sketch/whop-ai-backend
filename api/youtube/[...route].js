@@ -15,7 +15,7 @@ async function callback(req,res){
   const data=await r.json();
   if(!r.ok||data.error) return res.status(502).json({ok:false,error:"YouTube token exchange failed",details:data.error_description||data.error});
   saveTokens(res,"youtube",data); clearCookie(res,STATE_COOKIE);
-  return res.status(200).json({ok:true,provider:"youtube",connected:true});
+  return res.redirect(302,"/?youtube=connected");
 }
 
 async function publish(req,res){
@@ -54,7 +54,7 @@ export default async function handler(req,res){
     const state=makeState("youtube"); setCookie(res,STATE_COOKIE,state,600);
     const url=new URL("https://accounts.google.com/o/oauth2/v2/auth");
     url.searchParams.set("client_id",clientId); url.searchParams.set("redirect_uri",redirectUri); url.searchParams.set("response_type","code");
-    url.searchParams.set("access_type","offline"); url.searchParams.set("prompt","consent"); url.searchParams.set("scope","https://www.googleapis.com/auth/youtube.upload"); url.searchParams.set("state",state);
+    url.searchParams.set("access_type","offline"); url.searchParams.set("prompt","consent"); url.searchParams.set("scope","https://www.googleapis.com/auth/youtube.upload"); url.searchParams.set("state",state); url.searchParams.set("response_mode","query");
     return res.redirect(302,url.toString());
   }
   if(route==="callback"){ if(req.method!=="GET") return res.status(405).json({ok:false,error:"Method not allowed"}); return callback(req,res); }
